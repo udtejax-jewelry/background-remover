@@ -1,0 +1,17 @@
+# Ignore Python virtual environment
+.venv/
+venv/
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+
+# Streamlit cache
+.streamlit/
+.cache/
+
+# OS-specific junk
+.DS_Store
+Thumbs.db
+
+.env
