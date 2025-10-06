@@ -1,51 +1,44 @@
-Jewelry Tools (Gemini + Rembg)
+# 💎 Jewelry Tools (Gemini + Rembg)
 
-Two-in-one Streamlit app for jewelry image workflows:
+A dual-purpose **Streamlit app** for jewelry image workflows:
 
-Background Remover
+1. **Background Remover**
+   - Optional **Step-1:** Uses **Gemini 2.5 Flash** to replace the background with a solid, high-contrast color (preview only).
+   - **Step-2:** Runs a robust cutout pipeline (Rembg + band-trimap + guided/closed-form matting + pearl-safe cleanup) to produce a clean **transparent PNG**.
 
-Optional Step-1: uses Gemini 2.5 Flash to place the jewelry on a solid, high-contrast background (preview only).
+2. **Jewelry Placer** *(Work-In-Progress)*
+   - Placeholder tab for upcoming features.
 
-Step-2: runs a robust cutout pipeline (Rembg + band-trimap + guided/CF matting + pearl-safe hole punch) to produce a clean transparent PNG.
+The app is access-controlled via a lightweight email/password authentication system.
 
-Jewelry Placer (WIP)
+---
 
-Placeholder tab for future features.
+## ✨ Features
 
-The app is gated by a lightweight email/password login.
+- 🪄 **High-contrast background preview** powered by Gemini 2.5 Flash.
+- 🎯 **Accurate cutouts** with IS-Net / U²-Net models via Rembg.
+- 🔍 **Refinement controls:** guided or closed-form matting.
+- ⚪ **Pearl-safe hole punch** — protects bright beads or hollow loops.
+- ⚙️ Interactive sliders for trimap, smoothing, dehalo, and edge softness.
+- 🖼️ Batch upload, preview, and transparent PNG download.
+- 🔐 Authentication via whitelisted company emails + shared password.
 
-✨ Features
+---
 
-High-contrast pre-step (Gemini) for near “one-click” results on tricky metals/pearls.
+## 🗂️ Project Structure
 
-Rembg (IS-Net/U²-Net family) for strong initial alpha.
+---
 
-Band-trimap refinement with Guided Filter (safe) or Closed-Form Matting (precise).
+## 🔐 Authentication
 
-Pearl-safe hole punch: opens loops/ball centers without deleting bright beads.
+> ⚠️ *This is a simple in-app login intended for internal/company use only.  
+> For production security, switch to OAuth, SSO, or Streamlit Teams access control.*
 
-Interactive sliders for thresholds, hole size, edge dehalo, and softness.
+---
 
-Batch upload, preview, and download final transparent PNGs.
+## 🧰 Requirements
 
-Simple Auth: whitelisted emails + shared password.
-
-🗂 Project Structure
-.
-├─ background_remover.py     # Streamlit app (includes auth + both tabs)
-├─ requirements.txt          # Python dependencies
-├─ .env                      # (optional) holds GEMINI_API_KEY for local dev
-└─ README.md
-
-🔐 Authentication
-
-Allowed emails (case-insensitive local part, strict domain match)
-
-Note: This is an app-level gate intended for internal usage. For sensitive deployments, switch to a proper auth solution (OAuth/SSO, Streamlit Teams access control, etc.).
-
-🧰 Requirements
-
-See requirements.txt:
+Add the following to your `requirements.txt`:
 
 altair==5.5.0
 annotated-types==0.7.0
@@ -125,149 +118,145 @@ watchdog==6.0.0
 websockets==15.0.1
 
 
-🔑 Environment Variables
-Local development
+---
 
-Create a .env file in the project root:
+## 🔑 Environment Variables
 
-GEMINI_API_KEY=your_google_gemini_key
+### Local development
 
+Create a `.env` file in your project root:
 
-Without this key, the app still runs; the Gemini pre-step is simply skipped.
+Without the key, the app still works (Gemini pre-step will be skipped).
 
-Streamlit Community Cloud
+### Streamlit Community Cloud
 
-Add the key under App → Settings → Secrets:
+Go to **App → Settings → Secrets**, then add:
 
+```toml
 GEMINI_API_KEY = "your_google_gemini_key"
 
-▶️ Run Locally
-# 1) create & activate a venv (recommended)
+
+# 1️⃣ Create and activate a virtual environment
 python -m venv .venv
 # Windows:
 .venv\Scripts\activate
 # macOS/Linux:
 source .venv/bin/activate
 
-# 2) install deps
+# 2️⃣ Install dependencies
 pip install -r requirements.txt
 
-# 3) (optional) add GEMINI_API_KEY to .env
+# 3️⃣ (Optional) Add GEMINI_API_KEY to .env
 
-# 4) launch
+# 4️⃣ Launch the app
 streamlit run background_remover.py
 
-
-Open the URL printed in the terminal. You’ll see the login screen first.
-
-🚀 Deploy to Streamlit Community Cloud
-
-Push this repo to GitHub.
-
-In Streamlit Cloud, New app → select the repo & background_remover.py.
-
-Under Advanced settings → Secrets, add:
+background_remover_v2.py
 
 GEMINI_API_KEY="your_google_gemini_key"
 
+### 🧭 How to Use
 
-Deploy.
+Log in with an approved company email and password.
 
-Share the app link with the approved users only.
+Go to the Background Remover tab.
 
-🧭 Usage
+Upload one or more jewelry photos (.jpg or .png).
 
-Sign in with an allowed email + password.
+(Optional) Enable the Gemini pre-step and select a background color that contrasts the jewelry.
 
-Background Remover tab:
+Adjust sliders only if needed:
 
-Upload one or more JPG/PNG images.
+Trimap band width
 
-(Optional) Enable Gemini pre-step and pick a color that provides the strongest contrast.
+Refinement mode (guided recommended)
 
-Tune sliders only if needed:
-
-Trimap band width, refinement mode (guided recommended), hole size/smoothing, pearl protect, dehalo, edge softness.
+Hole area, pearl protect level, dehalo, edge softness
 
 Download the final transparent PNG.
 
-Jewelry Placer tab: shows Work-In-Progress (placeholder).
+Check the Jewelry Placer tab — currently marked as Work-In-Progress.
 
-🧪 Recommended Settings
+### 🧪 Recommended Settings
+Setting	Recommended
+Refinement	guided
+Band width	3–6 px
+Pearl protect	0.70–0.85
+Hole area	40–80 px
+Edge softness	1 px
+Dehalo	0
 
-Start with defaults:
+If edges look eroded or jewelry is lost, use Gemini pre-step for a high-contrast color and stick with guided refinement.
 
-Refinement: guided
+### 🛠️ Troubleshooting
 
-Band width: 3–6 px
+Gemini pre-step not working
 
-Dehalo: 0
+Ensure your GEMINI_API_KEY is correctly set in .env or Streamlit Secrets.
 
-Pearl protect: 0.70–0.85 if beads get nibbled
+ONNX Runtime Error
 
-Min hole area: 40–80 depending on piece size
+Use onnxruntime==1.18.0 or install onnxruntime-gpu if on CUDA.
 
-If edges erode on bright backgrounds, rely on Gemini pre-step and keep guided mode.
+Jewelry too thin or missing details
 
-🛠 Troubleshooting
+Set Refinement to guided or none, increase Band Width, and set Dehalo to 0.
 
-Gemini step not working
+Inner holes not visible
 
-Make sure GEMINI_API_KEY is set. If missing, the app will skip the pre-step and show a warning.
+Lower Min hole area or increase Hole edge smoothing σ.
 
-ONNX runtime errors
+### 🔒 Security Notice
 
-Ensure onnxruntime==1.18.0 (or onnxruntime-gpu on CUDA setups).
+This app uses simple, static login credentials for internal testing.
+For production deployment, replace with an enterprise-grade authentication system (OAuth / SSO) and store credentials in Streamlit Secrets.
 
-Cutout too aggressive / missing details
+### 🧭 Roadmap
 
-Set Refinement to guided or none; increase band width; set Dehalo to 0; raise Pearl protect.
+✅ Background Remover (complete)
 
-Inner holes not transparent
+🚧 Jewelry Placer (in progress)
 
-Lower Min hole area or increase Hole edge smoothing slightly.
+🔜 Preset profiles for jewelry styles (rings, chains, pendants)
 
-🔒 Security Notes
+🔜 Manual mask refinement (scribble mode)
 
-Current auth is a simple email whitelist + shared password. Avoid storing sensitive data.
+🔜 Organization-wide SSO auth
 
-For production-grade security, replace with SSO/OAuth or Streamlit Teams access control and unique user credentials.
+### 🤝 Contributing
 
-🧭 Roadmap
+Pull requests welcome!
+Please:
 
-Finish Jewelry Placer features.
+Keep the background removal logic intact unless fixing bugs.
 
-Preset profiles per jewelry style (bracelet, keychain, charm).
+Add new features under the appropriate tab.
 
-Optional manual scribble refinement (GrabCut) for edge cases.
+Include documentation updates when adding new settings or dependencies.
 
-Proper org SSO auth.
+### 📜 License
 
-🤝 Contributing
+Copyright © 2025
+All rights reserved.
 
-PRs welcome! Please:
+If you plan to open-source, replace this with an open-source license (e.g., MIT or Apache 2.0).
 
-Keep the removal pipeline logic intact unless fixing a bug.
-
-Put new UI features under the appropriate tab.
-
-Use clear commit messages and update this README if behavior changes.
-
-📄 License
-
-Copyright © 2025. All rights reserved.
-If you plan to open-source, replace with MIT/Apache-2.0 and add a LICENSE file.
-
-🙏 Acknowledgements
+### 🙏 Acknowledgements
 
 Rembg
- for high-quality background removal.
+ — background removal backend
 
-pymatting
- for closed-form matting.
+PyMatting
+ — closed-form alpha matting
 
-Google Gemini 2.5 Flash for the high-contrast background preview step.
+Google Gemini 2.5 Flash
+ — background recolor step
 
-Streamlit for the app framework.
+Streamlit
+ — app framework powering this project
 
-Questions or feature requests? Open an issue in this repo.
+### 🏁 Summary
+
+This app combines AI-powered background replacement with classic matting techniques, offering a reliable jewelry cutout pipeline that even handles pearls, loops, and soft edges — all inside an intuitive Streamlit interface.
+
+
