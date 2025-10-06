@@ -11,12 +11,11 @@ import numpy as np
 from PIL import Image
 import streamlit as st
 
-# ---- Optional: load GEMINI_API_KEY from .env (fallback for local dev only)
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except Exception:
-    pass
+# ---- Load secrets safely ----
+GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", "")
+ALLOWED_EMAILS = set(e.lower() for e in st.secrets.get("ALLOWED_EMAILS", []))
+SHARED_PASSWORD = st.secrets.get("SHARED_PASSWORD", "")
+ALLOWED_DOMAINS = {e.split("@", 1)[1] for e in ALLOWED_EMAILS if "@" in e}
 
 import cv2
 from scipy import ndimage as ndi
@@ -34,27 +33,10 @@ from rembg import remove, new_session
 
 
 # =========================
-# AUTHENTICATION (secrets-first)
+# AUTHENTICATION
 # =========================
-# Prefer pulling from Streamlit Secrets; fallback to hardcoded defaults for local dev.
-_DEFAULT_ALLOWED = {
-    "gangothri.k@tanyacreations.com",
-    "mb@tanyacreations.com",
-    "scativo@tanyacreations.com",
-    "ewallick@tanyacreations.com",
-    "heena.dave@ud-ny.com",
-    "neil.shah@ud-ny.com",
-    "sarvesh.mandvikar@ud-ny.com",
-    "shashank.agarwal@ud-ny.com",
-}
 
-_ALLOWED_FROM_SECRETS = set([e.lower() for e in st.secrets.get("ALLOWED_EMAILS", [])]) if hasattr(st, "secrets") else set()
-ALLOWED_EMAILS = _ALLOWED_FROM_SECRETS or _DEFAULT_ALLOWED
 
-SHARED_PASSWORD = st.secrets.get("SHARED_PASSWORD", "udny123") if hasattr(st, "secrets") else "udny123"
-
-# strict domain set (derived from allowed emails)
-ALLOWED_DOMAINS = {e.split("@", 1)[1] for e in ALLOWED_EMAILS}
 
 def _normalize_email(email: str) -> str:
     """Lowercase entire email. Local-part case doesn't matter; domains must match exactly."""
