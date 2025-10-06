@@ -151,7 +151,7 @@ pip install -r requirements.txt
 # 4️⃣ Launch the app
 streamlit run background_remover.py
 
-background_remover_v2.py
+background_remover.py
 
 GEMINI_API_KEY="your_google_gemini_key"
 
