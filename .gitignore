@@ -15,3 +15,5 @@ __pycache__/
 Thumbs.db
 
 .env
+
+background_remover_v2.py
