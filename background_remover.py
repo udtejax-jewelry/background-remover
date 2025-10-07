@@ -35,9 +35,6 @@ from rembg import remove, new_session
 # =========================
 # AUTHENTICATION
 # =========================
-
-
-
 def _normalize_email(email: str) -> str:
     """Lowercase entire email. Local-part case doesn't matter; domains must match exactly."""
     return (email or "").strip().lower()
@@ -69,7 +66,7 @@ def require_login():
     email = st.text_input("Work email", placeholder="you@tanyacreations.com")
     password = st.text_input("Password", type="password")
 
-    col_l, col_r = st.columns([1, 3])
+    col_l, _ = st.columns([1, 3])
     with col_l:
         submit = st.button("Sign in")
 
@@ -94,16 +91,7 @@ _gem_client = None
 try:
     from google import genai
     from google.genai import types as gem_types  # noqa: F401 (kept for parity)
-
-    # Prefer Streamlit Secrets; fallback to OS env for local dev
-    _GEM_API_KEY = None
-    try:
-        _GEM_API_KEY = st.secrets.get("GEMINI_API_KEY")
-    except Exception:
-        _GEM_API_KEY = None
-    if not _GEM_API_KEY:
-        _GEM_API_KEY = os.environ.get("GEMINI_API_KEY")
-
+    _GEM_API_KEY = GEMINI_API_KEY or os.environ.get("GEMINI_API_KEY")
     if _GEM_API_KEY:
         _gem_client = genai.Client(api_key=_GEM_API_KEY)
         GEMINI_AVAILABLE = True
@@ -382,6 +370,10 @@ with tab1:
         dehalo_px = st.slider("Edge dehalo (px)", 0, 3, 0, 1)
         edge_soften_px = st.slider("Final edge softness (blur px)", 0, 4, 1, 1)
 
+        # >>> New: manual trigger to run the pipeline
+        st.markdown("---")
+        run_clicked = st.button("🚀 Generate", type="primary", help="Run Step-1 preview (optional) + Step-2 cutout")
+
     session = _rembg_session(model_name)
 
     uploaded = st.file_uploader("Upload JPG/PNG", type=["jpg","jpeg","png"], accept_multiple_files=True)
@@ -390,27 +382,33 @@ with tab1:
     if uploaded:
         for file in uploaded:
             orig = Image.open(file).convert("RGB")
-            preview = None
 
-            # --- Step-1: Gemini recolor (preview only)
-            if enable_gemini:
-                if GEMINI_AVAILABLE:
-                    with st.spinner(f"Gemini: creating {color_choice} background preview..."):
-                        preview = gemini_recolor_background(orig, color_choice)
-                else:
-                    st.warning("Gemini not available (missing google-genai or GEMINI_API_KEY). Skipping Step-1.")
-            step1_image = preview if preview is not None else orig
-
-            # show previews
+            # Always show the original so the user can tune settings before running.
             with col1:
                 st.image(orig, caption=f"Input — {file.name}", use_container_width=True)
+
+            if not run_clicked:
+                # Before clicking Generate: show a placeholder in the other columns.
+                with col2:
+                    st.info("Step-1 Preview will appear here after you click **Generate**.")
+                with col3:
+                    st.info("Step-2 transparent PNG will appear here after you click **Generate**.")
+                continue  # wait for the button
+
+            # --- Only after user clicks Generate do we run Step-1/Step-2 ---
+            preview = None
+            if enable_gemini and GEMINI_AVAILABLE:
+                with st.spinner(f"Gemini: creating {color_choice} background preview..."):
+                    preview = gemini_recolor_background(orig, color_choice)
+
+            step1_image = preview if preview is not None else orig
+
             with col2:
                 if preview is not None:
                     st.image(preview, caption=f"Step-1 Preview ({color_choice})", use_container_width=True)
                 else:
                     st.image(step1_image, caption="Step-1 Preview (skipped)", use_container_width=True)
 
-            # --- Step-2: run UNCHANGED cutout pipeline on the Step-1 image
             out, debug = run_pipeline(
                 image=step1_image, session=session,
                 band_px=band_px, conf_hi=conf_hi, conf_lo=conf_lo,
@@ -441,4 +439,4 @@ with tab1:
                     use_container_width=True
                 )
     else:
-        st.info("Upload images. Use Step-1 Gemini to push the jewelry onto a strong-contrast solid color, then Step-2 cuts perfectly.")
+        st.info("Upload images. Set your options, then click **Generate** to run.")
